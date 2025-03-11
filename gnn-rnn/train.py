@@ -452,8 +452,12 @@ def train(args):
     print("New avg Y")
     print(year_avg_Y_new)
 
-    param_setting = "gnn-rnn_bs-{}_lr-{}_maxepoch-{}_sche-{}_T0-{}_etamin-{}_step-{}_gamma-{}_dropout-{}_sleep-{}_testyear-{}_aggregator-{}_encoder-{}_trainweekstart-{}_len-{}_weightdecay-{}_seed-{}".format(
-        args.batch_size, args.learning_rate, args.max_epoch, args.scheduler, args.T0, args.eta_min, args.lrsteps, args.gamma, args.dropout, args.sleep, args.test_year, args.aggregator_type, args.encoder_type, args.train_week_start, args.length, args.weight_decay, args.seed)
+    filename = os.path.basename(args.data_dir)  # Gets "weekly_heartland.npz"
+    data_name = os.path.splitext(filename)[0]  # Remove extension -> "weekly_heartland"
+    data_name = data_name.split('_')[-1]  # Take last part after underscore -> "heartland"
+
+    param_setting = "gnn-rnn_tr-dataset-{}_bs-{}_lr-{}_sche-{}_etamin-{}_step-{}_dropout-{}_testyear-{}_aggregator-{}_encoder-{}_weightdecay-{}_seed-{}".format(
+        data_name, args.batch_size, args.learning_rate, args.scheduler, args.eta_min, args.lrsteps, args.dropout, args.test_year, args.aggregator_type, args.encoder_type, args.weight_decay, args.seed)
     if args.no_management:
         param_setting += "_no-management"
     if args.checkpoint_path != "./ckpt":
@@ -555,12 +559,9 @@ def train(args):
 
             # Save raw results (true and predicted labels) to files
             train_results.to_csv(os.path.join(results_dir, "train_results.csv"), index=False)
-            val_results.to_csv(os.path.join(results_dir, "val_results.csv"), index=False)
             test_results.to_csv(os.path.join(results_dir, "test_results.csv"), index=False)
 
             # Plot results
-            # visualization_utils.plot_true_vs_predicted(train_results[train_results["year"] == 1986], args.output_names, "1986_train", results_dir)
-            visualization_utils.plot_true_vs_predicted(val_results, args.output_names, str(args.test_year - 1) + "_val", results_dir)
             visualization_utils.plot_true_vs_predicted(test_results, args.output_names, str(args.test_year) + "_test", results_dir)
 
             # Record Git commit and command used, along with current metrics
@@ -583,11 +584,9 @@ def train(args):
             # Plot RMSE over time
             epoch_list = range(len(train_rmse_list))
             plots = []
-            train_rmse_plot, = plt.plot(epoch_list, train_rmse_list, color='blue', label='Train RMSE (1981-' + str(args.test_year - 2) + ')')
-            val_rmse_plot, = plt.plot(epoch_list, val_rmse_list, color='orange', label='Validation RMSE (' + str(args.test_year - 1) + ')')
+            train_rmse_plot, = plt.plot(epoch_list, train_rmse_list, color='blue', label='Train RMSE (2017-' + str(args.test_year - 2) + ')')
             test_rmse_plot, = plt.plot(epoch_list, test_rmse_list, color='red', label='Test RMSE (' + str(args.test_year) + ')')
             plots.append(train_rmse_plot)
-            plots.append(val_rmse_plot)
             plots.append(test_rmse_plot)
             plt.legend(handles=plots)
             plt.xlabel('Epoch #')
@@ -597,11 +596,9 @@ def train(args):
 
             # Plot R2 over time
             plots = []
-            train_r2_plot, = plt.plot(epoch_list, train_r2_list, color='blue', label='Train R^2 (1981-' + str(args.test_year - 2) + ')')
-            val_r2_plot, = plt.plot(epoch_list, val_r2_list, color='orange', label='Validation R^2 (' + str(args.test_year - 1) + ')')
+            train_r2_plot, = plt.plot(epoch_list, train_r2_list, color='blue', label='Train R^2 (2017-' + str(args.test_year - 2) + ')')
             test_r2_plot, = plt.plot(epoch_list, test_r2_list, color='red', label='Test R^2 (' + str(args.test_year) + ')')
             plots.append(train_r2_plot)
-            plots.append(val_r2_plot)
             plots.append(test_r2_plot)
             plt.legend(handles=plots)
             plt.xlabel('Epoch #')

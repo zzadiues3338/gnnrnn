@@ -243,7 +243,13 @@ def test(args):
 
     #building the model
     print('building network...')
-    in_dim = year_XY[2000][0].shape[-1]
+    #in_dim = year_XY[2000][0].shape[-1]
+    if len(year_XY) == 0:
+        raise ValueError("No valid years found in processed data. Check your data preprocessing.")
+    else:
+        print("Available years in data:", list(year_XY.keys()))
+    first_year = min(year_XY.keys())
+    in_dim = year_XY[first_year][0].shape[-1]
     out_dim = 1
     model = SAGE_RNN(args, in_dim, out_dim).to(device)
     model.load_state_dict(torch.load(args.checkpoint_path, map_location=device))
@@ -255,12 +261,12 @@ def test(args):
                                                 time_str + "_test", results_dir)
 
     # Record Git commit and command used, along with final metrics
-    git_commit = get_git_revision_hash()
+    #git_commit = get_git_revision_hash()
     command_string = " ".join(sys.argv)
     with open(os.path.join(results_dir, "test_summary_" + time_str + ".txt"), 'w') as f:
         f.write("Algorithm: " + args.model + "\n")
         f.write("Dataset: " + args.dataset + "\n")
-        f.write("Git commit: " + git_commit + "\n")
+        #f.write("Git commit: " + git_commit + "\n")
         f.write("Test Command: " + command_string + "\n")
         f.write("Checkpoint: " + args.checkpoint_path + "\n")
         f.write("Test (" + time_str + ") | rmse: {}, r2: {}, corr: {}\n".format(test_metrics['rmse'], test_metrics['r2'], test_metrics['corr']))
@@ -270,11 +276,11 @@ def test(args):
     if not os.path.isfile(results_summary_file):
         with open(results_summary_file, mode='w') as f:
             csv_writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            csv_writer.writerow(['dataset', 'model', 'git_commit', 'command', 'test_week', 'mask_value', 'mask_prob', 'test_year', 'test_rmse', 'test_r2', 'test_corr', 'checkpoint'])
-    git_commit = get_git_revision_hash()
+            csv_writer.writerow(['dataset', 'model','command', 'test_week', 'mask_value', 'mask_prob', 'test_year', 'test_rmse', 'test_r2', 'test_corr', 'checkpoint'])
+    #git_commit = get_git_revision_hash()
     command_string = " ".join(sys.argv)
     with open(results_summary_file, mode='a+') as f:
         csv_writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        csv_writer.writerow([args.dataset, args.model, git_commit, command_string,
+        csv_writer.writerow([args.dataset, args.model, command_string,
                              args.validation_week, args.mask_value, args.mask_prob,
                              str(args.test_year), test_metrics['rmse'], test_metrics['r2'], test_metrics['corr'], args.checkpoint_path])

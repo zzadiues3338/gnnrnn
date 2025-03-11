@@ -43,7 +43,7 @@ parser.add_argument('-epoch', "--max_epoch", default=200, type=int, help='max ep
 parser.add_argument('-wd', "--weight_decay", default=1e-5, type=float, help='weight decay rate')
 parser.add_argument('-lrdr', "--lr_decay_ratio", default=0.5, type=float, help='The decay ratio of learning rate')
 
-parser.add_argument('-se', "--save_epoch", default=1, type=int, help='epochs to save the checkpoint of the model')
+parser.add_argument('-se', "--save_epoch", default=20, type=int, help='epochs to save the checkpoint of the model')
 parser.add_argument('-max_keep', "--max_keep", default=3, type=int, help='maximum number of saved model')
 parser.add_argument('-check_freq', "--check_freq", default=50, type=int, help='checking frequency')
 
@@ -85,7 +85,6 @@ parser.add_argument('-train_week_start', "--train_week_start", default=52, type=
 parser.add_argument('-validation_week', "--validation_week", default=52, type=int, help="Mask out data starting from this week during validation. Set to args.time_intervals for no masking.")
 parser.add_argument('-mask_prob', "--mask_prob", default=1, type=float, help="Probability of masking. 0 means don't mask any data.")
 parser.add_argument('-mask_value', "--mask_value", choices=['zero', 'county_avg'], default='zero')
-
 
 args = parser.parse_args()
 args.model = "gnn_rnn"

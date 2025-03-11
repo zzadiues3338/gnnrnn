@@ -7,6 +7,30 @@ sys.path.append('../cnn-rnn')  # HACK
 import visualization_utils
 import warnings
 import subprocess
+import pandas as pd
+
+#new addition for clustering
+def load_cluster_mapping(cluster_file):
+    df = pd.read_csv(cluster_file)
+    cluster_mapping = {row['FIPS']: row['Color'] for _, row in df.iterrows()}
+    return cluster_mapping
+
+def filter_X_Y_by_cluster_and_year(X_dict, Y_dict, allowed_counties, allowed_years):
+    filtered_X = {}
+    filtered_Y = {}
+
+    for county in allowed_counties:
+        if county in X_dict:
+            for year in allowed_years:
+                if year in X_dict[county]:
+                    if county not in filtered_X:
+                        filtered_X[county] = {}
+                        filtered_Y[county] = {}
+
+                    filtered_X[county][year] = X_dict[county][year]
+                    filtered_Y[county][year] = Y_dict[county][year]
+
+    return filtered_X, filtered_Y
 
 def build_path(path):
     path_levels = path.split('/')
