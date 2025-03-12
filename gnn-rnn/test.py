@@ -33,8 +33,8 @@ best_val = {'rmse': 1e9, 'r2': -1e9, 'corr':-1e9}
 
 # TODO - currently only supports single label (predictions and Y are flattened)
 def eval(pred, Y, args):
-    Y = (Y - args.means) / args.stds
-    pred = (pred - args.means) / args.stds
+    # Y = (Y - args.means) / args.stds
+    # pred = (pred - args.means) / args.stds
     pred, Y = pred.flatten().detach().cpu().numpy(), Y.flatten().detach().cpu().numpy()
 
     # Remove entries where Y is NA

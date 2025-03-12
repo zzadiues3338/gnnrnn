@@ -43,24 +43,24 @@ best_val = {'rmse': 1e9, 'r2': -1e9, 'corr':-1e9}
 
 # TODO - currently only supports single label (predictions and Y are flattened)
 def eval(pred, Y, args):
-    Y = (Y - args.means) / args.stds
-    pred = (pred - args.means) / args.stds
-    pred, Y = pred.flatten().detach().cpu().numpy(), Y.flatten().detach().cpu().numpy()
+    # Y = (Y - args.means) / args.stds
+    # pred = (pred - args.means) / args.stds
 
+    pred, Y = pred.flatten().detach().cpu().numpy(), Y.flatten().detach().cpu().numpy()
+    
     # Remove entries where Y is NA
     not_na = ~np.isnan(Y)
     pred = pred[not_na]
     Y = Y[not_na]
+
     if Y.shape[0] < 2:
         print("Not enough valid labels in this batch :O")
         return {'rmse': 0, 'r2': 0, 'corr': 0, 'mae': 0, 'mse': 0, 'mape': 0}
-    # if np.any(Y == 0):
-    #     print("Y was 0")
-    #     print(Y)
+
 
     metrics = {}
     # RMSE
-    metrics['rmse'] = np.sqrt(np.mean((pred-Y)**2))
+    metrics['rmse'] =  np.sqrt(np.mean((pred-Y)**2))
     # R2
     metrics['r2'] = r2_score(Y, pred)
     # corr
@@ -81,6 +81,7 @@ def eval(pred, Y, args):
 def loss_fn(pred, Y, args, mode="logcosh"):
     # Remove entries where Y is NA
     # print("Loss fn", pred.shape, Y.shape)
+
     Y = torch.reshape(Y, (-1, Y.shape[-1]))
     pred = torch.reshape(pred, (-1, pred.shape[-1]))
     not_na = ~torch.isnan(Y)
@@ -193,6 +194,12 @@ def train_epoch(args, model, device, nodeloader, year_XY, county_avg, year_avg_Y
 
             # loss = loss_fn(batch_pred, batch_labels[:, -1])
 
+            # Debugging
+            #print(f"\nBatch {batch_idx} - Year {year}")
+            #print(f"Batch Pred (First 5): {batch_pred[:5].cpu().detach().numpy()}")
+            #print(f"Batch Labels (First 5): {batch_labels[:5].cpu().detach().numpy()}")
+
+
             loss = loss_fn(batch_pred[:, :args.length-1, :], batch_labels[:, :args.length-1, :], args) * args.c1 + \
                    loss_fn(batch_pred[:, -1, :], batch_labels[:, -1, :], args) * args.c2
             optimizer.zero_grad()
@@ -235,6 +242,8 @@ def train_epoch(args, model, device, nodeloader, year_XY, county_avg, year_avg_Y
     results = pd.concat(result_dfs)
 
     # Calculate stats on all data
+    #print(f"All pred, first 20 : {all_pred[:20]}")
+    #print(f"All Y , first 20: {all_Y[:20]}")
     all_pred = torch.cat(all_pred, dim=0)
     all_Y = torch.cat(all_Y, dim=0)
     metrics_all = eval(all_pred, all_Y, args)
@@ -319,6 +328,8 @@ def val_epoch(args, model, device, nodeloader, year_XY, county_avg, year_avg_Y, 
         results = pd.concat(result_dfs)
 
         # Calculate stats on all data
+        #print(f"All pred, first 20 : {all_pred[:20]}")
+        #print(f"All Y , first 20: {all_Y[:20]}")
         all_pred = torch.cat(all_pred, dim=0)
         all_Y = torch.cat(all_Y, dim=0)
         metrics_all = eval(all_pred, all_Y, args)
